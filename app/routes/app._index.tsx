@@ -68,7 +68,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         discountAutomaticAppCreate(
           automaticAppDiscount: {
             title: "Free Gift Auto"
-            functionHandle: "gift-with-purchase"
+            functionHandle: "gwp-discount"
             startsAt: "2026-01-01T00:00:00Z"
             combinesWith: {
               productDiscounts: true
