@@ -2,7 +2,7 @@
 
 client_id = "a778066dcc8b6dd224c23464e44bf402"
 name = "custom-functions"
-application_url = "http://localhost:3000"
+application_url = "https://custom-functions.onrender.com"
 embedded = true
 
 [build]
@@ -24,4 +24,4 @@ api_version = "2026-04"
 scopes = "write_discounts,read_discounts,write_shipping,read_shipping"
 
 [auth]
-redirect_urls = [ "http://localhost:3000/api/auth" ]
+redirect_urls = [ "https://custom-functions.onrender.com/auth/callback" ]
