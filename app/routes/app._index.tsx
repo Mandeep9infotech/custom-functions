@@ -99,21 +99,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     );
 
   if (!deliveryTitles.includes("AU Shipping Filter")) {
-    console.log("Creating Shipping Filter");
+  console.log("Creating Shipping Filter");
 
-    await admin.graphql(`
-      mutation {
-        deliveryCustomizationCreate(
-          deliveryCustomization: {
-            title: "AU Shipping Filter"
-            enabled: true
-          }
-        ) {
-          userErrors { message }
+  await admin.graphql(`
+    mutation {
+      deliveryCustomizationCreate(
+        deliveryCustomization: {
+          title: "AU Shipping Filter"
+          enabled: true
+          functionId: "019cb2a9-f4c6-7dee-8b38-35b809329604"
         }
+      ) {
+        userErrors { message }
       }
-    `);
-  }
+    }
+  `);
+}
 
   console.log("✅ Setup check complete");
 
