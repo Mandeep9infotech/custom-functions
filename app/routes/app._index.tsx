@@ -10,7 +10,112 @@ import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { admin } = await authenticate.admin(request);
+
+  console.log("🔥 App opened — checking setup");
+
+  // 1️⃣ Check existing automatic discounts
+  const discountCheck = await admin.graphql(`
+    query {
+      discountNodes(first: 50) {
+        nodes {
+          discount {
+            ... on DiscountAutomaticApp {
+              title
+            }
+          }
+        }
+      }
+    }
+  `);
+
+  const discountData = await discountCheck.json();
+  const existingTitles =
+    discountData.data.discountNodes.nodes
+      .map((n: any) => n.discount?.title)
+      .filter(Boolean);
+
+  // 2️⃣ Create Volume Discount if missing
+  if (!existingTitles.includes("15% Volume Discount")) {
+    console.log("Creating Volume Discount");
+
+    await admin.graphql(`
+      mutation {
+        discountAutomaticAppCreate(
+          automaticAppDiscount: {
+            title: "15% Volume Discount"
+            functionHandle: "volume-discount"
+            startsAt: "2026-01-01T00:00:00Z"
+            combinesWith: {
+              productDiscounts: true
+              orderDiscounts: true
+              shippingDiscounts: true
+            }
+          }
+        ) {
+          userErrors { message }
+        }
+      }
+    `);
+  }
+
+  // 3️⃣ Create GWP if missing
+  if (!existingTitles.includes("Free Gift Auto")) {
+    console.log("Creating Free Gift Discount");
+
+    await admin.graphql(`
+      mutation {
+        discountAutomaticAppCreate(
+          automaticAppDiscount: {
+            title: "Free Gift Auto"
+            functionHandle: "gift-with-purchase"
+            startsAt: "2026-01-01T00:00:00Z"
+            combinesWith: {
+              productDiscounts: true
+              orderDiscounts: true
+              shippingDiscounts: true
+            }
+          }
+        ) {
+          userErrors { message }
+        }
+      }
+    `);
+  }
+
+  // 4️⃣ Check delivery customization
+  const deliveryCheck = await admin.graphql(`
+    query {
+      deliveryCustomizations(first: 20) {
+        nodes { title }
+      }
+    }
+  `);
+
+  const deliveryData = await deliveryCheck.json();
+  const deliveryTitles =
+    deliveryData.data.deliveryCustomizations.nodes.map(
+      (n: any) => n.title
+    );
+
+  if (!deliveryTitles.includes("AU Shipping Filter")) {
+    console.log("Creating Shipping Filter");
+
+    await admin.graphql(`
+      mutation {
+        deliveryCustomizationCreate(
+          deliveryCustomization: {
+            title: "AU Shipping Filter"
+            enabled: true
+          }
+        ) {
+          userErrors { message }
+        }
+      }
+    `);
+  }
+
+  console.log("✅ Setup check complete");
 
   return null;
 };
