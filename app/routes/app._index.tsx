@@ -36,53 +36,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .filter(Boolean);
 
   // 2️⃣ Create Volume Discount if missing
- if (!existingTitles.includes("15% OFF additional units")) {
-  console.log("Creating Volume Discount");
-
-  await admin.graphql(`
-    mutation {
-      discountAutomaticAppCreate(
-        automaticAppDiscount: {
-          title: "15% OFF additional units"
-          functionHandle: "volume-discount"
-          startsAt: "2026-01-01T00:00:00Z"
-          combinesWith: {
-            productDiscounts: true
-            orderDiscounts: true
-            shippingDiscounts: true
-          }
-        }
-      ) {
-        userErrors { message }
-      }
-    }
-  `);
-}
-
+ 
   // 3️⃣ Create GWP if missing
-  if (!existingTitles.includes("Free Gift Auto")) {
-    console.log("Creating Free Gift Discount");
-
-    await admin.graphql(`
-      mutation {
-        discountAutomaticAppCreate(
-          automaticAppDiscount: {
-            title: "Free Gift Auto"
-            functionHandle: "gwp-discount"
-            startsAt: "2026-01-01T00:00:00Z"
-            combinesWith: {
-              productDiscounts: true
-              orderDiscounts: true
-              shippingDiscounts: true
-            }
-          }
-        ) {
-          userErrors { message }
-        }
-      }
-    `);
-  }
-
+ 
   // 4️⃣ Check delivery customization
   const deliveryCheck = await admin.graphql(`
     query {
