@@ -2,22 +2,31 @@ import {
   CartInput,
   CartLinesDiscountsGenerateRunResult,
   ProductDiscountSelectionStrategy,
-} from '../generated/api';
+} from "../generated/api";
 
 const MINIMUM_QUANTITY = 2;
 const DISCOUNT_PERCENTAGE = 15;
 const DISCOUNT_MESSAGE = "15% OFF additional units!";
 
 export function cartLinesDiscountsGenerateRun(
-  input: CartInput,
+  input: CartInput
 ): CartLinesDiscountsGenerateRunResult {
 
   const candidates = [];
 
   for (const line of input.cart.lines) {
+
     if (line.merchandise.__typename !== "ProductVariant") continue;
-    if (line.merchandise.product.isGiftCard) continue;
-    if (!line.merchandise.product.hasAnyTag) continue;
+
+    const product = line.merchandise.product;
+
+    // ignore gift cards
+    if (product.isGiftCard) continue;
+
+    // only apply if tag 15SCRIPT exists
+    if (!product.hasAnyTag) continue;
+
+    // minimum quantity check
     if (line.quantity < MINIMUM_QUANTITY) continue;
 
     const discountedQty = line.quantity - 1;
@@ -38,7 +47,7 @@ export function cartLinesDiscountsGenerateRun(
     });
   }
 
-  if (candidates.length === 0) {
+  if (!candidates.length) {
     return { operations: [] };
   }
 
