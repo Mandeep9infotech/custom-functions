@@ -43,7 +43,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       mutation {
         discountAutomaticAppCreate(
           automaticAppDiscount: {
-            title: "15% Volume Discount"
+            title: "15% OFF additional units"
             functionHandle: "volume-discount"
             startsAt: "2026-01-01T00:00:00Z"
             combinesWith: {
