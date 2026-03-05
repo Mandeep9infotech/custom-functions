@@ -1,0 +1,94 @@
+import {
+  CartInput,
+  CartLinesDiscountsGenerateRunResult,
+  ProductDiscountSelectionStrategy,
+} from "../generated/api";
+
+const MIN_QTY = 2;
+const DISCOUNT_PERCENT = 15;
+
+export function cartLinesDiscountsGenerateRun(
+  input: CartInput
+): CartLinesDiscountsGenerateRunResult {
+
+  const candidates: any[] = [];
+
+  for (const line of input.cart.lines) {
+
+    if (line.merchandise.__typename !== "ProductVariant") continue;
+
+    const product = line.merchandise.product;
+
+    /*
+    =====================================
+    FREE GIFT LOGIC
+    =====================================
+    */
+    if (line.attributes?.some(a => a.key === "free_gift")) {
+
+      candidates.push({
+        message: "Free gift added!",
+        targets: [
+          {
+            cartLine: {
+              id: line.id,
+              quantity: line.quantity
+            }
+          }
+        ],
+        value: {
+          percentage: { value: 100 }
+        }
+      });
+
+      continue;
+    }
+
+    /*
+    =====================================
+    VOLUME DISCOUNT
+    =====================================
+    */
+
+    const hasTag = product.hasAnyTag;
+
+    if (!hasTag) continue;
+
+    if (product.isGiftCard) continue;
+
+    if (line.quantity < MIN_QTY) continue;
+
+    const discountedQty = line.quantity - 1;
+
+    candidates.push({
+      message: "15% OFF additional units!",
+      targets: [
+        {
+          cartLine: {
+            id: line.id,
+            quantity: discountedQty
+          }
+        }
+      ],
+      value: {
+        percentage: { value: DISCOUNT_PERCENT }
+      }
+    });
+
+  }
+
+  if (candidates.length === 0) {
+    return { operations: [] };
+  }
+
+  return {
+    operations: [
+      {
+        productDiscountsAdd: {
+          candidates,
+          selectionStrategy: ProductDiscountSelectionStrategy.First
+        }
+      }
+    ]
+  };
+}
