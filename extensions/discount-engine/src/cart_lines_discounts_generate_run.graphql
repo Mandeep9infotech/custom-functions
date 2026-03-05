@@ -3,8 +3,7 @@ query CartInput {
     lines {
       id
       quantity
-      attributes {
-        key
+      freeGift: attribute(key: "free_gift") {
         value
       }
       merchandise {

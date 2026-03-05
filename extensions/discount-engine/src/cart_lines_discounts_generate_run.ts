@@ -20,11 +20,14 @@ export function cartLinesDiscountsGenerateRun(
     const product = line.merchandise.product;
 
     /*
-    =====================================
+    ==========================================
     FREE GIFT LOGIC
-    =====================================
+    ==========================================
+    Detect property added by auto-gwp.js
+    properties: { free_gift: "" }
     */
-    if (line.attributes?.some(a => a.key === "free_gift")) {
+
+    if (line.freeGift !== null) {
 
       candidates.push({
         message: "Free gift added!",
@@ -37,7 +40,9 @@ export function cartLinesDiscountsGenerateRun(
           }
         ],
         value: {
-          percentage: { value: 100 }
+          percentage: {
+            value: 100
+          }
         }
       });
 
@@ -45,16 +50,14 @@ export function cartLinesDiscountsGenerateRun(
     }
 
     /*
-    =====================================
-    VOLUME DISCOUNT
-    =====================================
+    ==========================================
+    VOLUME DISCOUNT LOGIC
+    ==========================================
     */
 
-    const hasTag = product.hasAnyTag;
-
-    if (!hasTag) continue;
-
     if (product.isGiftCard) continue;
+
+    if (!product.hasAnyTag) continue;
 
     if (line.quantity < MIN_QTY) continue;
 
@@ -71,14 +74,17 @@ export function cartLinesDiscountsGenerateRun(
         }
       ],
       value: {
-        percentage: { value: DISCOUNT_PERCENT }
+        percentage: {
+          value: DISCOUNT_PERCENT
+        }
       }
     });
-
   }
 
-  if (candidates.length === 0) {
-    return { operations: [] };
+  if (!candidates.length) {
+    return {
+      operations: []
+    };
   }
 
   return {
