@@ -6,13 +6,13 @@ import {
 
 const MINIMUM_QUANTITY = 2;
 const DISCOUNT_PERCENTAGE = 15;
-const DISCOUNT_MESSAGE = "15% OFF discount applied!";
+const DISCOUNT_MESSAGE = "15% OFF additional units!";
 
 export function cartLinesDiscountsGenerateRun(
   input: CartInput,
 ): CartLinesDiscountsGenerateRunResult {
 
-  const targets: { cartLine: { id: string } }[] = [];
+  const candidates = [];
 
   for (const line of input.cart.lines) {
     if (line.merchandise.__typename !== "ProductVariant") continue;
@@ -20,10 +20,25 @@ export function cartLinesDiscountsGenerateRun(
     if (!line.merchandise.product.hasAnyTag) continue;
     if (line.quantity < MINIMUM_QUANTITY) continue;
 
-    targets.push({ cartLine: { id: line.id } });
+    const discountedQty = line.quantity - 1;
+
+    candidates.push({
+      message: DISCOUNT_MESSAGE,
+      targets: [
+        {
+          cartLine: {
+            id: line.id,
+            quantity: discountedQty,
+          },
+        },
+      ],
+      value: {
+        percentage: { value: DISCOUNT_PERCENTAGE },
+      },
+    });
   }
 
-  if (targets.length === 0) {
+  if (candidates.length === 0) {
     return { operations: [] };
   }
 
@@ -31,15 +46,7 @@ export function cartLinesDiscountsGenerateRun(
     operations: [
       {
         productDiscountsAdd: {
-          candidates: [
-            {
-              message: DISCOUNT_MESSAGE,
-              targets,
-              value: {
-                percentage: { value: DISCOUNT_PERCENTAGE },
-              },
-            },
-          ],
+          candidates,
           selectionStrategy: ProductDiscountSelectionStrategy.First,
         },
       },
